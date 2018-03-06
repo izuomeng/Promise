@@ -1,25 +1,20 @@
 function Promise(handler) {
-  const ref = this
+  var ref = this
   this.status = 'pending'
   this.next = []
-  const _resolve = (p, ref, cb) => {
-    p.then((value) => {
-      cb(value)
-    })
-    p.next = ref.next
-  }
-  const _resolveNext = (ref, nValue) => {
+  function _resolveNext(ref, nValue) {
     if (ref.next) {
       if (!(nValue && nValue.constructor && nValue.constructor.name == 'Promise')) {
         resolveNext(ref.next, nValue)
       } else {
-        _resolve(nValue, ref, (nnValue) => {
+        nValue.then(function() {
           resolveNext(ref.next, nnValue)
         })
+        nValue.next = ref.next
       }
     }
   }
-  const resolveNext = (ref, value) => {
+  function resolveNext(ref, value) {
     ref.status = 'resolved'
     if (ref.handler) {
       try {
@@ -30,7 +25,7 @@ function Promise(handler) {
       }
     }
   }
-  const rejectNext = (ref, reason) => {
+  function rejectNext(ref, reason) {
     if (!ref) {
       console.log('UnhandledPromiseRejectionWarning:', reason)
     } else {
@@ -47,16 +42,16 @@ function Promise(handler) {
       }
     }
   }
-  const resolve = (value) => {
+  function resolve(value){
     ref.status = 'resolved'
     if (ref.next && ref.next.length > 0) {
-      ref.next.forEach((promise) => {
+      ref.next.forEach(function(promise) {
         resolveNext(promise, value)
       })
     }
   }
 
-  const reject = (reason) => {
+  function reject(reason){
     ref.status = 'rejected'
     if (ref.next) {
       rejectNext(ref.next, reason)
